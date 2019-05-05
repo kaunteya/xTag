@@ -6,7 +6,7 @@ DATADIR ?= $(DATAROOTDIR)
 MANDIR ?= $(DATAROOTDIR)/man
 
 # files that need mode 755
-EXEC_FILES = git-checkout-interactive
+EXEC_FILES = xtag
 
 .PHONY: all install uninstall
 
