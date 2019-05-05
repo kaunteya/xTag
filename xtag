@@ -1,0 +1,64 @@
+#!/bin/bash
+
+## Set colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+if ! [ -z "$(git status --porcelain)" ]; then 
+  echo "# Uncommitted changes"
+  exit 1
+fi
+
+if [ $# -ne 2 ]; then
+    echo "Usage:"
+    echo "   xb <File.info path> <update-type>"
+    echo "Update Type"
+    echo "   p => Patch update"
+    echo "   i => Minor update"
+    echo "   m => Major update"
+    exit 1;
+fi
+
+INFOPLIST_FILE=$1
+updateType=$2
+
+version=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$INFOPLIST_FILE")
+buildNumber=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFOPLIST_FILE")
+oldFormatted="$version($buildNumber)"
+printf "Old ${oldFormatted}"
+# exit 0
+# Get version in Major minor and patch
+a=($(echo "$version" | tr '.' '\n'))
+major="${a[0]}"
+minor="${a[1]}"
+patch="${a[2]}"
+
+# Update version as per argument
+if [ $updateType = "p" ]; then
+    patch=$(($patch + 1))
+    newVersion="$major.$minor.$patch"
+elif [ $updateType = "i" ]; then
+    minor=$(($minor + 1))
+    newVersion="$major.$minor"
+elif [ $updateType = "m" ]; then
+    major=$(($major + 1))
+    newVersion="$major.0"
+fi
+
+/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString "$newVersion"" "$INFOPLIST_FILE"
+
+# Update build number by 1
+buildNumber=$(($buildNumber + 1))
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $buildNumber" "$INFOPLIST_FILE"
+
+newFormatted="$newVersion($buildNumber)"
+
+# Updated user about the changes
+printf "Updated\n  ${RED}$oldFormatted";
+printf "\n  ${GREEN}$newFormatted\n";
+
+# Push change and apply tag
+git add $INFOPLIST_FILE
+git commit -m "Version update"
+git tag $newFormatted
