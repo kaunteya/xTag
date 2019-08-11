@@ -1,6 +1,11 @@
 # xTag
 
-Automatic version updater
+Automatic version updater for Xcode projects
+It does following
+- Updates Version based on parameters
+- Increments build number by one
+- Commits the change to git
+- Applies the tag to the commit 
 
 ## Install
 You can install `xTag` using 
