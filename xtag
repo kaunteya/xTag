@@ -14,9 +14,10 @@ if [ $# -ne 2 ]; then
     echo "Usage:"
     echo "   xb <File.info path> <update-type>"
     echo "Update Type"
-    echo "   p => Patch update"
-    echo "   i => Minor update"
     echo "   m => Major update"
+    echo "   i => Minor update"
+    echo "   p => Patch update"
+    echo "   b => Build increment"
     exit 1;
 fi
 
@@ -44,6 +45,11 @@ elif [ $updateType = "i" ]; then
 elif [ $updateType = "m" ]; then
     major=$(($major + 1))
     newVersion="$major.0"
+elif [ $updateType = "b" ]; then
+    newVersion=$version
+else
+    echo "Invalid update paramter. Valid parameters: 'p', 'i', 'm', 'b'"
+    return 1;
 fi
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString "$newVersion"" "$INFOPLIST_FILE"
@@ -60,5 +66,5 @@ printf "\n  ${GREEN}$newFormatted\n";
 
 # Push change and apply tag
 git add $INFOPLIST_FILE
-git commit -m "Version update"
+git commit -m "Version update" -e
 git tag $newFormatted
